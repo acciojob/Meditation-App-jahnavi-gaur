@@ -1,4 +1,3 @@
-//your JS code here. If required.
 let timer;
         const playButton = document.querySelector('.play');
         let currentTime = 600;
