@@ -8,7 +8,7 @@
 
 <body>
 	<!-- the entire body must be written by student -->
-	<div id="app">
+	<div class="app" id="app">
 
 		<div class="vid-container" style='background-color:grey'>
 			<video muted loop id="meditation-video">
@@ -20,7 +20,7 @@
 
 		<div class="player-container">
 
-		<div id="time-select">
+		<div id="time-select" class="time-select">
 			<button id="smaller-mins">2 Minutes</button>
 			<button id="medium-mins">5 Minutes</button>
 			<button id="long-mins">10 Minutes</button>
@@ -31,7 +31,7 @@
 
 				<button class="play"> ►
 				</button>
-				<h3 class="time-display"></h3>
+				<h3 class="time-display">10:0</h3>
 				
 			</div>
 
@@ -40,7 +40,7 @@
 				<button id="beach-sound">Beach</button>
 				<button id="rain-sound">Rain</button>
 		</div>
-
+	<audio id="meditation-audio" src="./Sounds/beach.mp3"></audio>
 		
 	</div>
 	</div>
