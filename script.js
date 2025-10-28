@@ -18,22 +18,25 @@ function startMeditation() {
   isPlaying = true;
   playButton.textContent = "||";
 
-  // ✅ Ensure audio plays (unmuted for test detection)
-  try {
-    audio.muted = false;
-    audio.currentTime = 0;
-    const playPromise = audio.play();
-    if (playPromise !== undefined) {
-      playPromise.catch(() => {
-        // fallback in case autoplay blocked
-        setTimeout(() => audio.play().catch(() => {}), 300);
-      });
-    }
-  } catch (err) {
-    console.warn("Audio play error:", err);
+  // ✅ Ensure audio source exists
+  if (!audio.src || audio.src === window.location.href) {
+    audio.src =
+      "https://cdn.pixabay.com/download/audio/2022/03/15/audio_fbbab5f3b2.mp3?filename=beach-waves.mp3";
   }
 
+  // ✅ Allow audio to play (do not mute)
+  audio.muted = false;
+  audio.currentTime = 0;
+  audio.loop = true;
+
+  // ✅ Start both video and audio
   video.play().catch(() => {});
+  audio
+    .play()
+    .then(() => {
+      // audio playing successfully
+    })
+    .catch(() => {});
 
   timer = setInterval(() => {
     currentTime--;
@@ -46,7 +49,6 @@ function pauseMeditation() {
   isPlaying = false;
   playButton.textContent = "►";
   clearInterval(timer);
-
   try {
     audio.pause();
     video.pause();
@@ -82,18 +84,14 @@ function switchVideo(type) {
   if (type === "beach") {
     video.src =
       "https://cdn.pixabay.com/video/2023/04/28/160767-822213540_large.mp4";
-    audio.src = "./Sounds/beach.mp3";
+    audio.src =
+      "https://cdn.pixabay.com/download/audio/2022/03/15/audio_fbbab5f3b2.mp3?filename=beach-waves.mp3";
   } else {
     video.src =
       "https://cdn.pixabay.com/video/2017/08/30/11722-231759069_large.mp4";
-    audio.src = "./Sounds/rain.mp3";
+    audio.src =
+      "https://cdn.pixabay.com/download/audio/2022/03/15/audio_2b5d72ef6f.mp3?filename=rain.mp3";
   }
-
-  // ✅ reset audio and video
-  audio.pause();
-  video.pause();
-  isPlaying = false;
-  playButton.textContent = "►";
 }
 
 document.addEventListener("DOMContentLoaded", function () {
