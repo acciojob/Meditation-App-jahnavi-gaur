@@ -21,12 +21,16 @@ function updateTimerDisplay(secondsLeft) {
 function togglePlay() {
   if (song.paused) {
     song.muted = false;
-    video.muted = true; // avoid Cypress “no user gesture” error
-    song.play().then(() => {
-      video.play();
-      play.src = './svg/pause.svg';
-      startCountdown();
-    });
+    video.muted = true;
+    try {
+      song.play().then(() => {
+        video.play().catch(() => {});
+        play.src = './svg/pause.svg';
+        startCountdown();
+      });
+    } catch (err) {
+      console.warn("Audio playback error:", err.message);
+    }
   } else {
     song.pause();
     video.pause();
