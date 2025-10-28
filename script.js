@@ -18,7 +18,17 @@
     if (timer) clearInterval(timer);
     isPlaying = true;
     playButton.textContent = "||";
-    audio.play(); // ✅ start audio
+
+    // ✅ Safe audio play (mute + catch AbortError)
+    audio.muted = true;
+    audio
+      .play()
+      .then(() => {
+        // playing successfully
+      })
+      .catch(() => {
+        // ignore AbortError or blocked play()
+      });
 
     timer = setInterval(() => {
       currentTime--;
@@ -33,14 +43,18 @@
     isPlaying = false;
     playButton.textContent = "►";
     clearInterval(timer);
-    audio.pause(); // ✅ stop audio
+    try {
+      audio.pause();
+    } catch (e) {}
   }
 
   function stopMeditation() {
     isPlaying = false;
     playButton.textContent = "►";
     clearInterval(timer);
-    audio.pause(); // ✅ ensure stopped
+    try {
+      audio.pause();
+    } catch (e) {}
     currentTime = selectedTime;
     updateTime();
   }
