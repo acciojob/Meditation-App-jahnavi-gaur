@@ -1,39 +1,40 @@
 <!DOCTYPE html>
 <html lang="en">
-<head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Meditation App</title>
-  <link rel="stylesheet" href="styles.css" />
-</head>
-<body>
-  <div class="app">
-    <div class="vid-container">
-      <video src="./Video/beach.mp4" loop preload="auto"></video>
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Meditation App</title>
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <div class="app">
+      <div class="vid-container">
+        <video id="meditation-video" loop muted>
+          <source src="./Sounds/beach.mp4" type="video/mp4" />
+        </video>
+      </div>
+
+      <div class="player-container">
+        <audio loop></audio>
+
+        <div class="time-select" id="time-select">
+          <button class="smaller-mins" id="smaller-mins">2 Minutes</button>
+          <button class="medium-mins" id="medium-mins">5 Minutes</button>
+          <button class="long-mins" id="long-mins">10 Minutes</button>
+        </div>
+
+        <div class="player-control">
+          <button class="play">►</button>
+          <h3 class="time-display">10:0</h3>
+        </div>
+
+        <div class="sound-picker">
+          <button id="beach-sound">Beach</button>
+          <button id="rain-sound">Rain</button>
+        </div>
+      </div>
     </div>
 
-    <div class="time-select">
-      <button class="smaller-mins" data-time="120">2 Minutes</button>
-      <button class="medium-mins" data-time="300">5 Minutes</button>
-      <button class="long-mins" data-time="600">10 Minutes</button>
-    </div>
-
-    <div class="player-container">
-      <audio class="song" src="./Sounds/beach.mp3" preload="auto"></audio>
-      <img src="./svg/play.svg" class="play" alt="Play Button" />
-      <h3 class="time-display">10:0</h3>
-    </div>
-
-    <div class="sound-picker">
-      <button class="beach">
-        BEACH
-      </button>
-      <button class="rain">
-        RAIN
-      </button>
-    </div>
-  </div>
-
-  <script src="script.js"></script>
-</body>
+    <script src="script.js"></script>
+  </body>
 </html>

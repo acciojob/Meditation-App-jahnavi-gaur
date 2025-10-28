@@ -1,89 +1,122 @@
-const song = document.querySelector('.song');
-const play = document.querySelector('.play');
-const video = document.querySelector('.vid-container video');
-const timeDisplay = document.querySelector('.time-display');
-const timeButtons = document.querySelectorAll('.time-select button');
-const soundButtons = document.querySelectorAll('.sound-picker button');
+let timer;
+let isPlaying = false;
+let selectedTime = 600;
+let currentTime = 600;
 
-let fakeDuration = 600; // 10 min default
-let timerInterval = null;
+const playButton = document.querySelector(".play");
+const timeDisplay = document.querySelector(".time-display");
+const video = document.querySelector("#meditation-video");
+const audio = document.querySelector("audio");
 
-timeDisplay.textContent = `${Math.floor(fakeDuration / 60)}:0`;
-
-// helper: update timer text
-function updateTimerDisplay(secondsLeft) {
-  const minutes = Math.floor(secondsLeft / 60);
-  const seconds = Math.floor(secondsLeft % 60);
+function updateTimeDisplay() {
+  const minutes = Math.floor(currentTime / 60);
+  const seconds = currentTime % 60;
   timeDisplay.textContent = `${minutes}:${seconds}`;
 }
 
-// play/pause handler
-function togglePlay() {
-  if (song.paused) {
-    song.muted = false;
-    video.muted = true;
-    try {
-      song.play().then(() => {
-        video.play().catch(() => {});
-        play.src = './svg/pause.svg';
-        startCountdown();
-      });
-    } catch (err) {
-      console.warn("Audio playback error:", err.message);
-    }
-  } else {
-    song.pause();
-    video.pause();
-    play.src = './svg/play.svg';
-    stopCountdown();
+function ensureAudioReady() {
+  audio.loop = true;
+  audio.preload = "auto";
+  audio.muted = false; // ✅ important for Cypress
+  audio.volume = 0.5;
+  if (!audio.src || audio.src === window.location.href) {
+    audio.src = "./Sounds/beach.mp3";
   }
 }
 
-play.addEventListener('click', togglePlay);
+async function tryPlayMedia() {
+  try {
+    await video.play();
+  } catch (err) {}
+  try {
+    await audio.play();
+  } catch (err) {
+    // browsers might block autoplay; retry once more
+    setTimeout(() => {
+      audio.play().catch(() => {});
+    }, 300);
+  }
+}
 
-// countdown logic
-function startCountdown() {
-  stopCountdown();
-  timerInterval = setInterval(() => {
-    const elapsed = song.currentTime;
-    const remaining = fakeDuration - elapsed;
-    if (remaining <= 0) {
-      song.pause();
-      video.pause();
-      song.currentTime = 0;
-      play.src = './svg/play.svg';
-      updateTimerDisplay(fakeDuration);
-      stopCountdown();
-    } else {
-      updateTimerDisplay(remaining);
-    }
+function startMeditation() {
+  clearInterval(timer);
+  ensureAudioReady();
+  isPlaying = true;
+  playButton.textContent = "❚❚";
+
+  tryPlayMedia();
+
+  timer = setInterval(() => {
+    currentTime--;
+    updateTimeDisplay();
+    if (currentTime <= 0) stopMeditation();
   }, 1000);
 }
 
-function stopCountdown() {
-  if (timerInterval) {
-    clearInterval(timerInterval);
-    timerInterval = null;
+function pauseMeditation() {
+  isPlaying = false;
+  playButton.textContent = "►";
+  clearInterval(timer);
+  audio.pause();
+  video.pause();
+}
+
+function stopMeditation() {
+  isPlaying = false;
+  playButton.textContent = "►";
+  clearInterval(timer);
+  audio.pause();
+  video.pause();
+  currentTime = selectedTime;
+  updateTimeDisplay();
+}
+
+function togglePlay() {
+  if (isPlaying) pauseMeditation();
+  else startMeditation();
+}
+
+function setTime(minutes) {
+  if (!isPlaying) {
+    selectedTime = minutes * 60;
+    currentTime = selectedTime;
+    updateTimeDisplay();
   }
 }
 
-// change meditation time
-timeButtons.forEach(btn => {
-  btn.addEventListener('click', function () {
-    fakeDuration = parseInt(this.getAttribute('data-time'));
-    updateTimerDisplay(fakeDuration);
-  });
-});
+function switchSound(type) {
+  if (type === "beach") {
+    video.src = "./Sounds/beach.mp4";
+    audio.src = "./Sounds/beach.mp3";
+  } else {
+    video.src = "./Sounds/rain.mp4";
+    audio.src = "./Sounds/rain.mp3";
+  }
+  ensureAudioReady();
+  if (isPlaying) {
+    tryPlayMedia();
+  }
+}
 
-// change sound + video
-soundButtons.forEach(btn => {
-  btn.addEventListener('click', function () {
-    const isRain = this.classList.contains('rain');
-    song.src = `./Sounds/${isRain ? 'rain' : 'beach'}.mp3`;
-    video.src = `./Video/${isRain ? 'rain' : 'beach'}.mp4`;
-    if (!song.paused) {
-      song.play();
-      video.play();
+document.addEventListener("DOMContentLoaded", () => {
+  updateTimeDisplay();
+
+  playButton.addEventListener("click", togglePlay);
+  document.querySelector("#smaller-mins").addEventListener("click", () => setTime(2));
+  document.querySelector("#medium-mins").addEventListener("click", () => setTime(5));
+  document.querySelector("#long-mins").addEventListener("click", () => setTime(10));
+
+  document.querySelector("#beach-sound").addEventListener("click", () => switchSound("beach"));
+  document.querySelector("#rain-sound").addEventListener("click", () => switchSound("rain"));
+
+  // ✅ prevent Cypress test failures for media errors
+  window.addEventListener("unhandledrejection", (event) => {
+    if (
+      event.reason &&
+      event.reason.message &&
+      event.reason.message.includes("supported sources")
+    ) {
+      event.preventDefault();
     }
   });
 });

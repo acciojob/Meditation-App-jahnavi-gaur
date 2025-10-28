@@ -1,13 +1,101 @@
-* { margin: 0; padding: 0; box-sizing: border-box; }
-body { font-family: Arial, sans-serif; background-color: #f2f2f2; text-align: center; overflow: hidden; }
-.app { position: relative; width: 100%; height: 100vh; overflow: hidden;}
-.vid-container video { width: 100%; height: 100%; object-fit: cover;}
-.time-select { position: absolute; top: 5%; left: 50%; transform: translateX(-50%); }
-.time-select button { background: rgba(255, 255, 255, 0.8); border: none; padding: 10px 15px; margin: 5px; border-radius: 20px; cursor: pointer; font-weight: bold; }
-.player-container { position: absolute; bottom: 20%; left: 50%; transform: translateX(-50%); text-align: center; }
-.play { width: 80px; cursor: pointer; margin-bottom: 10px; }
-.time-display { font-size: 2rem; color: #fff; }
-.sound-picker { position: absolute; bottom: 5%; left: 50%; transform: translateX(-50%); }
-.sound-picker button { background: rgba(255, 255, 255, 0.8); border: none; margin: 0 10px; border-radius: 50%; cursor: pointer; width: 70px; height: 70px; }
-.sound-picker .beach{background-color:blue}
-.sound-picker .rain{background-color:red}
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+  font-family: Arial, sans-serif;
+}
+
+.app {
+  position: relative;
+  height: 100vh;
+  width: 100vw;
+  overflow: hidden;
+}
+
+.vid-container {
+  position: absolute;
+  top: 0;
+  left: 0;
+  height: 100%;
+  width: 100%;
+  z-index: 1;
+}
+
+video {
+  height: 100%;
+  width: 100%;
+  object-fit: cover;
+}
+
+.player-container {
+  position: absolute;
+  top: 0;
+  left: 0;
+  height: 100%;
+  width: 100%;
+  z-index: 2;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 2rem;
+}
+
+.time-select {
+  display: flex;
+  flex-direction: column;
+  gap: 2rem;
+}
+
+button {
+  font-size: 1rem;
+  padding: 0.8rem;
+  background: transparent;
+  color: white;
+  border: 2px solid white;
+  cursor: pointer;
+}
+
+.player-control {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1.5rem;
+}
+
+.play {
+  height: 150px;
+  width: 150px;
+  font-size: 5rem;
+  border-radius: 50%;
+  border: 7px solid white;
+  background: transparent;
+  color: white;
+}
+
+.time-display {
+  font-size: 3rem;
+  color: white;
+}
+
+.sound-picker {
+  display: flex;
+  flex-direction: column;
+  gap: 2rem;
+}
+
+.sound-picker button {
+  height: 70px;
+  width: 70px;
+  border-radius: 50%;
+  border: none;
+  color: white;
+  font-size: 1.2rem;
+}
+
+#beach-sound {
+  background: steelblue;
+}
+
+#rain-sound {
+  background: tomato;
+}
