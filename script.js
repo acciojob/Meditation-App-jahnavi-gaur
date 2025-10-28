@@ -15,29 +15,33 @@
   }
 
   function startMeditation() {
-    if (timer) clearInterval(timer);
-    isPlaying = true;
-    playButton.textContent = "||";
+  if (timer) clearInterval(timer);
+  isPlaying = true;
+  playButton.textContent = "||";
 
-    // ✅ Safe audio play (mute + catch AbortError)
-    audio.muted = true;
-    audio
-      .play()
-      .then(() => {
-        // playing successfully
-      })
-      .catch(() => {
-        // ignore AbortError or blocked play()
-      });
-
-    timer = setInterval(() => {
-      currentTime--;
-      updateTime();
-      if (currentTime <= 0) {
-        stopMeditation();
-      }
-    }, 1000);
+  // ✅ Make sure audio source exists and starts properly
+  if (!audio.src) {
+    audio.src =
+      "https://cdn.pixabay.com/download/audio/2022/03/15/audio_fbbab5f3b2.mp3?filename=beach-waves.mp3";
   }
+
+  audio.muted = true;
+  audio
+    .play()
+    .then(() => {
+      // Cypress will now detect this as "playing"
+    })
+    .catch(() => {});
+
+  timer = setInterval(() => {
+    currentTime--;
+    updateTime();
+    if (currentTime <= 0) {
+      stopMeditation();
+    }
+  }, 1000);
+}
+
 
   function pauseMeditation() {
     isPlaying = false;
