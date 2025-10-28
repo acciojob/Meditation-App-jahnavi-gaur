@@ -1,122 +1,67 @@
-let timer;
-let isPlaying = false;
-let selectedTime = 600;
-let currentTime = 600;
+// Select DOM elements
+const song = document.querySelector('.song');
+const play = document.querySelector('.play');
+const video = document.querySelector('.vid-container video');
+const timeDisplay = document.querySelector('.time-display');
+const timeSelectButtons = document.querySelectorAll('.time-select button');
+const soundPicker = document.querySelectorAll('.sound-picker button');
 
-const playButton = document.querySelector(".play");
-const timeDisplay = document.querySelector(".time-display");
-const video = document.querySelector("#meditation-video");
-const audio = document.querySelector("audio");
+// Default duration (10 minutes)
+let fakeDuration = 600;
 
-function updateTimeDisplay() {
-  const minutes = Math.floor(currentTime / 60);
-  const seconds = currentTime % 60;
-  timeDisplay.textContent = `${minutes}:${seconds}`;
-}
+// Update time display on load
+timeDisplay.textContent = `${Math.floor(fakeDuration / 60)}:${fakeDuration % 60}`;
 
-function ensureAudioReady() {
-  audio.loop = true;
-  audio.preload = "auto";
-  audio.muted = false; // ✅ important for Cypress
-  audio.volume = 0.5;
-  if (!audio.src || audio.src === window.location.href) {
-    audio.src = "./Sounds/beach.mp3";
-  }
-}
-
-async function tryPlayMedia() {
-  try {
-    await video.play();
-  } catch (err) {}
-  try {
-    await audio.play();
-  } catch (err) {
-    // browsers might block autoplay; retry once more
-    setTimeout(() => {
-      audio.play().catch(() => {});
-    }, 300);
-  }
-}
-
-function startMeditation() {
-  clearInterval(timer);
-  ensureAudioReady();
-  isPlaying = true;
-  playButton.textContent = "❚❚";
-
-  tryPlayMedia();
-
-  timer = setInterval(() => {
-    currentTime--;
-    updateTimeDisplay();
-    if (currentTime <= 0) stopMeditation();
-  }, 1000);
-}
-
-function pauseMeditation() {
-  isPlaying = false;
-  playButton.textContent = "►";
-  clearInterval(timer);
-  audio.pause();
-  video.pause();
-}
-
-function stopMeditation() {
-  isPlaying = false;
-  playButton.textContent = "►";
-  clearInterval(timer);
-  audio.pause();
-  video.pause();
-  currentTime = selectedTime;
-  updateTimeDisplay();
-}
-
-function togglePlay() {
-  if (isPlaying) pauseMeditation();
-  else startMeditation();
-}
-
-function setTime(minutes) {
-  if (!isPlaying) {
-    selectedTime = minutes * 60;
-    currentTime = selectedTime;
-    updateTimeDisplay();
-  }
-}
-
-function switchSound(type) {
-  if (type === "beach") {
-    video.src = "./Sounds/beach.mp4";
-    audio.src = "./Sounds/beach.mp3";
+// Play/pause functionality
+play.addEventListener('click', () => {
+  if (song.paused) {
+    song.play();
+    video.play();
+    play.src = './svg/pause.svg';
   } else {
-    video.src = "./Sounds/rain.mp4";
-    audio.src = "./Sounds/rain.mp3";
+    song.pause();
+    video.pause();
+    play.src = './svg/play.svg';
   }
-  ensureAudioReady();
-  if (isPlaying) {
-    tryPlayMedia();
+});
+
+// Update timer every second
+song.ontimeupdate = () => {
+  const currentTime = song.currentTime;
+  const remainingTime = fakeDuration - currentTime;
+  let minutes = Math.floor(remainingTime / 60);
+  let seconds = Math.floor(remainingTime % 60);
+  timeDisplay.textContent = `${minutes}:${seconds}`;
+
+  // Stop when timer ends
+  if (currentTime >= fakeDuration) {
+    song.pause();
+    video.pause();
+    song.currentTime = 0;
+    play.src = './svg/play.svg';
   }
-}
+};
 
-document.addEventListener("DOMContentLoaded", () => {
-  updateTimeDisplay();
+// Time select buttons
+timeSelectButtons.forEach((btn) => {
+  btn.addEventListener('click', function () {
+    fakeDuration = this.getAttribute('data-time');
+    let minutes = Math.floor(fakeDuration / 60);
+    let seconds = Math.floor(fakeDuration % 60);
+    timeDisplay.textContent = `${minutes}:${seconds}`;
+  });
+});
 
-  playButton.addEventListener("click", togglePlay);
-  document.querySelector("#smaller-mins").addEventListener("click", () => setTime(2));
-  document.querySelector("#medium-mins").addEventListener("click", () => setTime(5));
-  document.querySelector("#long-mins").addEventListener("click", () => setTime(10));
-
-  document.querySelector("#beach-sound").addEventListener("click", () => switchSound("beach"));
-  document.querySelector("#rain-sound").addEventListener("click", () => switchSound("rain"));
-
-  // ✅ prevent Cypress test failures for media errors
-  window.addEventListener("unhandledrejection", (event) => {
-    if (
-      event.reason &&
-      event.reason.message &&
-      event.reason.message.includes("supported sources")
-    ) {
-      event.preventDefault();
+// Sound switching
+soundPicker.forEach((btn) => {
+  btn.addEventListener('click', function () {
+    const soundSrc = `./Sounds/${this.classList.contains('rain') ? 'rain' : 'beach'}.mp3`;
+    const videoSrc = `./Video/${this.classList.contains('rain') ? 'rain' : 'beach'}.mp4`;
+    song.src = soundSrc;
+    video.src = videoSrc;
+    if (!song.paused) {
+      song.play();
+      video.play();
     }
   });
 });
