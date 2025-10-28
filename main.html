@@ -9,7 +9,7 @@
 <body>
   <div class="app">
     <div class="vid-container">
-      <video src="./Video/beach.mp4" loop></video>
+      <video src="./Video/beach.mp4" loop preload="auto"></video>
     </div>
 
     <div class="time-select">
@@ -19,21 +19,21 @@
     </div>
 
     <div class="player-container">
-      <audio class="song" src="./Sounds/beach.mp3"></audio>
+      <audio class="song" src="./Sounds/beach.mp3" preload="auto"></audio>
       <img src="./svg/play.svg" class="play" alt="Play Button" />
       <h3 class="time-display">10:0</h3>
     </div>
 
     <div class="sound-picker">
       <button class="beach">
-        <img src="./svg/beach.svg" alt="Beach Sound" />
+        BEACH
       </button>
       <button class="rain">
-        <img src="./svg/rain.svg" alt="Rain Sound" />
+        RAIN
       </button>
     </div>
   </div>
 
-  <script src="main.js"></script>
+  <script src="script.js"></script>
 </body>
 </html>

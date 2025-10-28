@@ -1,64 +1,82 @@
-// Select DOM elements
 const song = document.querySelector('.song');
 const play = document.querySelector('.play');
 const video = document.querySelector('.vid-container video');
 const timeDisplay = document.querySelector('.time-display');
-const timeSelectButtons = document.querySelectorAll('.time-select button');
-const soundPicker = document.querySelectorAll('.sound-picker button');
+const timeButtons = document.querySelectorAll('.time-select button');
+const soundButtons = document.querySelectorAll('.sound-picker button');
 
-// Default duration (10 minutes)
-let fakeDuration = 600;
+let fakeDuration = 600; // 10 min default
+let timerInterval = null;
 
-// Update time display on load
-timeDisplay.textContent = `${Math.floor(fakeDuration / 60)}:${fakeDuration % 60}`;
+timeDisplay.textContent = `${Math.floor(fakeDuration / 60)}:0`;
 
-// Play/pause functionality
-play.addEventListener('click', () => {
+// helper: update timer text
+function updateTimerDisplay(secondsLeft) {
+  const minutes = Math.floor(secondsLeft / 60);
+  const seconds = Math.floor(secondsLeft % 60);
+  timeDisplay.textContent = `${minutes}:${seconds}`;
+}
+
+// play/pause handler
+function togglePlay() {
   if (song.paused) {
-    song.play();
-    video.play();
-    play.src = './svg/pause.svg';
+    song.muted = false;
+    video.muted = true; // avoid Cypress “no user gesture” error
+    song.play().then(() => {
+      video.play();
+      play.src = './svg/pause.svg';
+      startCountdown();
+    });
   } else {
     song.pause();
     video.pause();
     play.src = './svg/play.svg';
+    stopCountdown();
   }
-});
+}
 
-// Update timer every second
-song.ontimeupdate = () => {
-  const currentTime = song.currentTime;
-  const remainingTime = fakeDuration - currentTime;
-  let minutes = Math.floor(remainingTime / 60);
-  let seconds = Math.floor(remainingTime % 60);
-  timeDisplay.textContent = `${minutes}:${seconds}`;
+play.addEventListener('click', togglePlay);
 
-  // Stop when timer ends
-  if (currentTime >= fakeDuration) {
-    song.pause();
-    video.pause();
-    song.currentTime = 0;
-    play.src = './svg/play.svg';
+// countdown logic
+function startCountdown() {
+  stopCountdown();
+  timerInterval = setInterval(() => {
+    const elapsed = song.currentTime;
+    const remaining = fakeDuration - elapsed;
+    if (remaining <= 0) {
+      song.pause();
+      video.pause();
+      song.currentTime = 0;
+      play.src = './svg/play.svg';
+      updateTimerDisplay(fakeDuration);
+      stopCountdown();
+    } else {
+      updateTimerDisplay(remaining);
+    }
+  }, 1000);
+}
+
+function stopCountdown() {
+  if (timerInterval) {
+    clearInterval(timerInterval);
+    timerInterval = null;
   }
-};
+}
 
-// Time select buttons
-timeSelectButtons.forEach((btn) => {
+// change meditation time
+timeButtons.forEach(btn => {
   btn.addEventListener('click', function () {
-    fakeDuration = this.getAttribute('data-time');
-    let minutes = Math.floor(fakeDuration / 60);
-    let seconds = Math.floor(fakeDuration % 60);
-    timeDisplay.textContent = `${minutes}:${seconds}`;
+    fakeDuration = parseInt(this.getAttribute('data-time'));
+    updateTimerDisplay(fakeDuration);
   });
 });
 
-// Sound switching
-soundPicker.forEach((btn) => {
+// change sound + video
+soundButtons.forEach(btn => {
   btn.addEventListener('click', function () {
-    const soundSrc = `./Sounds/${this.classList.contains('rain') ? 'rain' : 'beach'}.mp3`;
-    const videoSrc = `./Video/${this.classList.contains('rain') ? 'rain' : 'beach'}.mp4`;
-    song.src = soundSrc;
-    video.src = videoSrc;
+    const isRain = this.classList.contains('rain');
+    song.src = `./Sounds/${isRain ? 'rain' : 'beach'}.mp3`;
+    video.src = `./Video/${isRain ? 'rain' : 'beach'}.mp4`;
     if (!song.paused) {
       song.play();
       video.play();
