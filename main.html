@@ -9,42 +9,32 @@
 <body>
   <!-- the entire body must be written by student -->
   <div class="app">
-
-        <div class="vid-container" style='background-color:grey'>
-            <video muted loop id="meditation-video">
-                <source src="https://cdn.pixabay.com/video/2016/08/12/4382-178617337_large.mp4">
-            </video>
-
-            <audio controls></audio>
-        </div>
-
-        <div class="player-container">
-
-            <div class="time-select">
-                <button id="smaller-mins">2 Minutes</button>
-                <button id="medium-mins">5 Minutes</button>
-                <button id="long-mins">10 Minutes</button>
-
-            </div>
-
-            <div class="player-control">
-
-                <button class="play"> ►
-                </button>
-                <h3 class="time-display">10:0</h3>
-
-            </div>
-
-
-            <div class="sound-picker">
-                <button id="beach-sound">Beach</button>
-                <button id="rain-sound">Rain</button>
-            </div>
-
-
-        </div>
-
+    <div class="vid-container">
+      <video muted loop id="meditation-video">
+        <source src="https://cdn.pixabay.com/video/2016/08/12/4382-178617337_large.mp4" />
+      </video>
     </div>
+
+    <div class="player-container">
+      <audio></audio>
+
+      <div class="time-select">
+        <button class="smaller-mins">2 Minutes</button>
+        <button class="medium-mins">5 Minutes</button>
+        <button class="long-mins">10 Minutes</button>
+      </div>
+
+      <div class="player-control">
+        <button class="play">►</button>
+        <h3 class="time-display">10:0</h3>
+      </div>
+
+      <div class="sound-picker">
+        <button id="beach-sound">Beach</button>
+        <button id="rain-sound">Rain</button>
+      </div>
+    </div>
+  </div>
 
   <<script type="text/javascript" src="./script.js">
 </script>
