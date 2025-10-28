@@ -1,49 +1,37 @@
 let timer;
-const playButton = document.querySelector(".play");
-let currentTime = 600;
+let isPlaying = false;
 let selectedTime = 600;
+let currentTime = 600;
+
+const playButton = document.querySelector(".play");
 const timeDisplay = document.querySelector(".time-display");
 const video = document.querySelector("#meditation-video");
 const audio = document.querySelector("audio");
-let isPlaying = false;
 
-function updateTime() {
+function updateTimeDisplay() {
   const minutes = Math.floor(currentTime / 60);
   const seconds = currentTime % 60;
   timeDisplay.textContent = `${minutes}:${seconds}`;
 }
 
-function ensureAudioReady() {
-  audio.loop = true;
-  audio.preload = "auto";
-  audio.volume = 0.5;
-  audio.muted = false;
-  // default to beach sound if none set
-  if (!audio.src || audio.src.endsWith("/")) {
-    audio.src = "./Sounds/beach.mp3";
-  }
-}
-
 function startMeditation() {
-  if (timer) clearInterval(timer);
+  clearInterval(timer);
   ensureAudioReady();
 
   isPlaying = true;
-  playButton.textContent = "||";
+  playButton.textContent = "❚❚";
 
   video.play().catch(() => {});
-  const playPromise = audio.play();
-
-  if (playPromise !== undefined) {
-    playPromise.catch(() => {
-      // fallback: reattempt play if browser blocked it
-      setTimeout(() => audio.play().catch(() => {}), 300);
+  const promise = audio.play();
+  if (promise !== undefined) {
+    promise.catch(() => {
+      setTimeout(() => audio.play().catch(() => {}), 200);
     });
   }
 
   timer = setInterval(() => {
     currentTime--;
-    updateTime();
+    updateTimeDisplay();
     if (currentTime <= 0) stopMeditation();
   }, 1000);
 }
@@ -52,22 +40,27 @@ function pauseMeditation() {
   isPlaying = false;
   playButton.textContent = "►";
   clearInterval(timer);
-  try {
-    audio.pause();
-    video.pause();
-  } catch (e) {}
+  audio.pause();
+  video.pause();
 }
 
 function stopMeditation() {
   isPlaying = false;
   playButton.textContent = "►";
   clearInterval(timer);
-  try {
-    audio.pause();
-    video.pause();
-  } catch (e) {}
+  audio.pause();
+  video.pause();
   currentTime = selectedTime;
-  updateTime();
+  updateTimeDisplay();
+}
+
+function ensureAudioReady() {
+  audio.loop = true;
+  audio.muted = false;
+  audio.volume = 0.6;
+  if (!audio.src || audio.src === window.location.href) {
+    audio.src = "./Sounds/beach.mp3";
+  }
 }
 
 function togglePlay() {
@@ -79,11 +72,11 @@ function setTime(minutes) {
   if (!isPlaying) {
     selectedTime = minutes * 60;
     currentTime = selectedTime;
-    updateTime();
+    updateTimeDisplay();
   }
 }
 
-function switchVideo(type) {
+function switchSound(type) {
   if (type === "beach") {
     video.src = "./Sounds/beach.mp4";
     audio.src = "./Sounds/beach.mp3";
@@ -92,37 +85,31 @@ function switchVideo(type) {
     audio.src = "./Sounds/rain.mp3";
   }
   ensureAudioReady();
+  if (isPlaying) {
+    video.play();
+    audio.play();
+  }
 }
 
-document.addEventListener("DOMContentLoaded", function () {
-  updateTime();
+document.addEventListener("DOMContentLoaded", () => {
+  updateTimeDisplay();
 
   playButton.addEventListener("click", togglePlay);
-  document
-    .querySelector(".smaller-mins")
-    .addEventListener("click", () => setTime(2));
-  document
-    .querySelector(".medium-mins")
-    .addEventListener("click", () => setTime(5));
-  document
-    .querySelector(".long-mins")
-    .addEventListener("click", () => setTime(10));
+  document.querySelector("#smaller-mins").addEventListener("click", () => setTime(2));
+  document.querySelector("#medium-mins").addEventListener("click", () => setTime(5));
+  document.querySelector("#long-mins").addEventListener("click", () => setTime(10));
 
-  document
-    .querySelector("#beach-sound")
-    .addEventListener("click", () => switchVideo("beach"));
-  document
-    .querySelector("#rain-sound")
-    .addEventListener("click", () => switchVideo("rain"));
+  document.querySelector("#beach-sound").addEventListener("click", () => switchSound("beach"));
+  document.querySelector("#rain-sound").addEventListener("click", () => switchSound("rain"));
 
-  // handle Cypress/browser errors cleanly
-  window.addEventListener("unhandledrejection", (event) => {
+  // Prevent test crashes from unsupported formats
+  window.addEventListener("unhandledrejection", (e) => {
     if (
-      event.reason &&
-      event.reason.message &&
-      event.reason.message.includes("supported sources")
+      e.reason &&
+      e.reason.message &&
+      e.reason.message.includes("supported sources")
     ) {
-      event.preventDefault();
+      e.preventDefault();
     }
   });
 });
