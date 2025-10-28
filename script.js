@@ -14,20 +14,37 @@ function updateTimeDisplay() {
   timeDisplay.textContent = `${minutes}:${seconds}`;
 }
 
+function ensureAudioReady() {
+  audio.loop = true;
+  audio.preload = "auto";
+  audio.muted = false; // ✅ important for Cypress
+  audio.volume = 0.5;
+  if (!audio.src || audio.src === window.location.href) {
+    audio.src = "./Sounds/beach.mp3";
+  }
+}
+
+async function tryPlayMedia() {
+  try {
+    await video.play();
+  } catch (err) {}
+  try {
+    await audio.play();
+  } catch (err) {
+    // browsers might block autoplay; retry once more
+    setTimeout(() => {
+      audio.play().catch(() => {});
+    }, 300);
+  }
+}
+
 function startMeditation() {
   clearInterval(timer);
   ensureAudioReady();
-
   isPlaying = true;
   playButton.textContent = "❚❚";
 
-  video.play().catch(() => {});
-  const promise = audio.play();
-  if (promise !== undefined) {
-    promise.catch(() => {
-      setTimeout(() => audio.play().catch(() => {}), 200);
-    });
-  }
+  tryPlayMedia();
 
   timer = setInterval(() => {
     currentTime--;
@@ -54,15 +71,6 @@ function stopMeditation() {
   updateTimeDisplay();
 }
 
-function ensureAudioReady() {
-  audio.loop = true;
-  audio.muted = false;
-  audio.volume = 0.6;
-  if (!audio.src || audio.src === window.location.href) {
-    audio.src = "./Sounds/beach.mp3";
-  }
-}
-
 function togglePlay() {
   if (isPlaying) pauseMeditation();
   else startMeditation();
@@ -86,8 +94,7 @@ function switchSound(type) {
   }
   ensureAudioReady();
   if (isPlaying) {
-    video.play();
-    audio.play();
+    tryPlayMedia();
   }
 }
 
@@ -102,14 +109,14 @@ document.addEventListener("DOMContentLoaded", () => {
   document.querySelector("#beach-sound").addEventListener("click", () => switchSound("beach"));
   document.querySelector("#rain-sound").addEventListener("click", () => switchSound("rain"));
 
-  // Prevent test crashes from unsupported formats
-  window.addEventListener("unhandledrejection", (e) => {
+  // ✅ prevent Cypress test failures for media errors
+  window.addEventListener("unhandledrejection", (event) => {
     if (
-      e.reason &&
-      e.reason.message &&
-      e.reason.message.includes("supported sources")
+      event.reason &&
+      event.reason.message &&
+      event.reason.message.includes("supported sources")
     ) {
-      e.preventDefault();
+      event.preventDefault();
     }
   });
 });
