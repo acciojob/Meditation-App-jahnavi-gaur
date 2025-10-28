@@ -88,7 +88,7 @@ function switchVideo(type) {
     video.src = "./Sounds/beach.mp4";
     audio.src = "./Sounds/beach.mp3";
   } else {
-    video.src = "./Sounds/*rain.mp4";
+    video.src = "./Sounds/rain.mp4";
     audio.src = "./Sounds/rain.mp3";
   }
   ensureAudioReady();
