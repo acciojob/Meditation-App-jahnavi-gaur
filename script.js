@@ -85,12 +85,10 @@ function setTime(minutes) {
 
 function switchVideo(type) {
   if (type === "beach") {
-    video.src =
-      "https://cdn.pixabay.com/video/2023/04/28/160767-822213540_large.mp4";
+    video.src = "./Sounds/beach.mp4";
     audio.src = "./Sounds/beach.mp3";
   } else {
-    video.src =
-      "https://cdn.pixabay.com/video/2017/08/30/11722-231759069_large.mp4";
+    video.src = "./Sounds/*rain.mp4";
     audio.src = "./Sounds/rain.mp3";
   }
   ensureAudioReady();
