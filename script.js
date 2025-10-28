@@ -13,30 +13,39 @@ function updateTime() {
   timeDisplay.textContent = `${minutes}:${seconds}`;
 }
 
-function startMeditation() {
-  if (timer) clearInterval(timer);
-  isPlaying = true;
-  playButton.textContent = "||";
-
-  // ✅ Ensure audio source exists
+function ensureAudioReady() {
+  // Preload and allow interaction playback
+  audio.loop = true;
+  audio.preload = "auto";
+  audio.volume = 0.5;
+  audio.muted = false;
   if (!audio.src || audio.src === window.location.href) {
     audio.src =
       "https://cdn.pixabay.com/download/audio/2022/03/15/audio_fbbab5f3b2.mp3?filename=beach-waves.mp3";
   }
+}
 
-  // ✅ Allow audio to play (do not mute)
-  audio.muted = false;
-  audio.currentTime = 0;
-  audio.loop = true;
+function startMeditation() {
+  if (timer) clearInterval(timer);
+  ensureAudioReady();
 
-  // ✅ Start both video and audio
+  isPlaying = true;
+  playButton.textContent = "||";
+
+  // ✅ Force playback start detectable by Cypress
   video.play().catch(() => {});
-  audio
-    .play()
-    .then(() => {
-      // audio playing successfully
-    })
-    .catch(() => {});
+  const playPromise = audio.play();
+  if (playPromise !== undefined) {
+    playPromise
+      .then(() => {
+        // confirm playback started
+        if (audio.paused) audio.play(); // retry if blocked
+      })
+      .catch(() => {
+        // fallback: force manual start
+        setTimeout(() => audio.play(), 300);
+      });
+  }
 
   timer = setInterval(() => {
     currentTime--;
@@ -92,6 +101,7 @@ function switchVideo(type) {
     audio.src =
       "https://cdn.pixabay.com/download/audio/2022/03/15/audio_2b5d72ef6f.mp3?filename=rain.mp3";
   }
+  ensureAudioReady();
 }
 
 document.addEventListener("DOMContentLoaded", function () {
