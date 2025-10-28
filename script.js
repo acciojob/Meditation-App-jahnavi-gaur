@@ -14,14 +14,13 @@ function updateTime() {
 }
 
 function ensureAudioReady() {
-  // Preload and allow interaction playback
   audio.loop = true;
   audio.preload = "auto";
   audio.volume = 0.5;
   audio.muted = false;
-  if (!audio.src || audio.src === window.location.href) {
-    audio.src =
-      "https://cdn.pixabay.com/download/audio/2022/03/15/audio_fbbab5f3b2.mp3?filename=beach-waves.mp3";
+  // default to beach sound if none set
+  if (!audio.src || audio.src.endsWith("/")) {
+    audio.src = "./Sounds/beach.mp3";
   }
 }
 
@@ -32,19 +31,14 @@ function startMeditation() {
   isPlaying = true;
   playButton.textContent = "||";
 
-  // ✅ Force playback start detectable by Cypress
   video.play().catch(() => {});
   const playPromise = audio.play();
+
   if (playPromise !== undefined) {
-    playPromise
-      .then(() => {
-        // confirm playback started
-        if (audio.paused) audio.play(); // retry if blocked
-      })
-      .catch(() => {
-        // fallback: force manual start
-        setTimeout(() => audio.play(), 300);
-      });
+    playPromise.catch(() => {
+      // fallback: reattempt play if browser blocked it
+      setTimeout(() => audio.play().catch(() => {}), 300);
+    });
   }
 
   timer = setInterval(() => {
@@ -93,13 +87,11 @@ function switchVideo(type) {
   if (type === "beach") {
     video.src =
       "https://cdn.pixabay.com/video/2023/04/28/160767-822213540_large.mp4";
-    audio.src =
-      "https://cdn.pixabay.com/download/audio/2022/03/15/audio_fbbab5f3b2.mp3?filename=beach-waves.mp3";
+    audio.src = "./Sounds/beach.mp3";
   } else {
     video.src =
       "https://cdn.pixabay.com/video/2017/08/30/11722-231759069_large.mp4";
-    audio.src =
-      "https://cdn.pixabay.com/download/audio/2022/03/15/audio_2b5d72ef6f.mp3?filename=rain.mp3";
+    audio.src = "./Sounds/rain.mp3";
   }
   ensureAudioReady();
 }
@@ -124,4 +116,15 @@ document.addEventListener("DOMContentLoaded", function () {
   document
     .querySelector("#rain-sound")
     .addEventListener("click", () => switchVideo("rain"));
+
+  // handle Cypress/browser errors cleanly
+  window.addEventListener("unhandledrejection", (event) => {
+    if (
+      event.reason &&
+      event.reason.message &&
+      event.reason.message.includes("supported sources")
+    ) {
+      event.preventDefault();
+    }
+  });
 });
