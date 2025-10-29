@@ -9,9 +9,11 @@ const video = document.querySelector("#meditation-video");
 const audio = document.querySelector("audio");
 
 function updateTimeDisplay() {
-  const minutes = Math.floor(currentTime / 60);
-  const seconds = currentTime % 60;
-  timeDisplay.textContent = `${minutes}:${seconds}`;
+    const minutes = Math.floor(currentTime / 60);
+    const seconds = currentTime % 60;
+    // Use String.prototype.padStart() to ensure two digits for seconds
+    const formattedSeconds = String(seconds).padStart(2, '0'); 
+    timeDisplay.textContent = `${minutes}:${formattedSeconds}`;
 }
 
 function ensureAudioReady() {
