@@ -79,31 +79,23 @@ async function tryPlayMedia() {
 
 
 function startMeditation() {
-
   clearInterval(timer);
-
   ensureAudioReady();
-
   isPlaying = true;
-
   playButton.textContent = "❚❚";
+  console.log("Starting meditation..."); // Debug log
 
-
-
-  tryPlayMedia();
-
-
+  tryPlayMedia().then(() => {
+    console.log("Audio should be playing now."); // Debug log
+  }).catch(err => {
+    console.error("Error playing audio:", err); // Debug log
+  });
 
   timer = setInterval(() => {
-
     currentTime--;
-
     updateTimeDisplay();
-
     if (currentTime <= 0) stopMeditation();
-
   }, 1000);
-
 }
 
 
