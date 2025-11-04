@@ -36,42 +36,24 @@ function ensureAudioReady() {
 
 // ✅ Robust tryPlayMedia with retries and Cypress-safe handling
 async function tryPlayMedia() {
+  console.log("Attempting to play media");
   try {
     await video.play();
-    console.log("Video playing ✅");
+    console.log("Video should be playing now");
   } catch (err) {
-    console.warn("Video play blocked:", err);
+    console.error("Error playing video:", err);
   }
-
+  
   try {
     await audio.play();
-    audioStarted = true;
-    console.log("Audio playing ✅");
+    console.log("Audio should be playing now");
   } catch (err) {
-    console.warn("Initial audio play blocked:", err);
+    console.error("Error playing audio:", err);
+    // Retry once more if it fails
     setTimeout(() => {
-      audio.play()
-        .then(() => {
-          audioStarted = true;
-          console.log("Audio retry success ✅");
-        })
-        .catch((retryErr) => console.error("Retry failed:", retryErr));
-    }, 400);
+      audio.play().catch(err => console.error("Retry failed:", err));
+    }, 300);
   }
-
-  // ✅ Extra Cypress fallback (force play)
-  setTimeout(() => {
-    if (audio.paused) {
-      console.log("Force playing audio for Cypress...");
-      audio.load();
-      audio.play()
-        .then(() => {
-          audioStarted = true;
-          console.log("Forced audio start success ✅");
-        })
-        .catch((err) => console.warn("Force play failed:", err));
-    }
-  }, 800);
 }
 
 function startMeditation() {
