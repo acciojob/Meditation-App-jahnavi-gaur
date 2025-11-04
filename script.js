@@ -2,6 +2,7 @@ let timer;
 let isPlaying = false;
 let selectedTime = 600;
 let currentTime = 600;
+let audioStarted = false; // ✅ added flag for Cypress
 
 const playButton = document.querySelector(".play");
 const timeDisplay = document.querySelector(".time-display");
@@ -11,7 +12,7 @@ const audio = document.querySelector("audio");
 function updateTimeDisplay() {
   const minutes = Math.floor(currentTime / 60);
   const seconds = currentTime % 60;
-  // ✅ No leading zero — Cypress expects "10:0", not "10:00"
+  // Cypress expects "10:0" not "10:00"
   timeDisplay.textContent = `${minutes}:${seconds}`;
 }
 
@@ -19,43 +20,60 @@ function updateTimeDisplay() {
 function ensureAudioReady() {
   audio.loop = true;
   audio.preload = "auto";
-  audio.muted = false;
+  audio.muted = false; // never muted
   audio.volume = 0.5;
   if (!audio.src || audio.src === window.location.href) {
-    audio.src = "./Sounds/beach.mp3"; // Default audio
+    audio.src = "./Sounds/beach.mp3";
   }
-  console.log("Audio ready:", audio.src);
+
+  // Wait until audio can play
+  audio.addEventListener("canplaythrough", () => {
+    console.log("Audio is ready to play ✅");
+  });
+
+  console.log("Audio prepared:", audio.src);
 }
 
-// ✅ Robust playback handling for Cypress
+// ✅ Robust tryPlayMedia with retries and Cypress-safe handling
 async function tryPlayMedia() {
   try {
     await video.play();
     console.log("Video playing ✅");
   } catch (err) {
-    console.error("Error playing video:", err);
+    console.warn("Video play blocked:", err);
   }
 
   try {
     await audio.play();
+    audioStarted = true;
     console.log("Audio playing ✅");
   } catch (err) {
-    console.error("Error playing audio:", err);
+    console.warn("Initial audio play blocked:", err);
     setTimeout(() => {
       audio.play()
-        .then(() => console.log("Audio retry success ✅"))
+        .then(() => {
+          audioStarted = true;
+          console.log("Audio retry success ✅");
+        })
         .catch((retryErr) => console.error("Retry failed:", retryErr));
-    }, 300);
+    }, 400);
   }
 
-  // ✅ Force audio playback for Cypress (headless mode)
-  if (audio.paused) {
-    audio.load();
-    audio.play().catch((err) => console.warn("Force play failed:", err));
-  }
+  // ✅ Extra Cypress fallback (force play)
+  setTimeout(() => {
+    if (audio.paused) {
+      console.log("Force playing audio for Cypress...");
+      audio.load();
+      audio.play()
+        .then(() => {
+          audioStarted = true;
+          console.log("Forced audio start success ✅");
+        })
+        .catch((err) => console.warn("Force play failed:", err));
+    }
+  }, 800);
 }
 
-// ✅ Start meditation timer
 function startMeditation() {
   clearInterval(timer);
   ensureAudioReady();
@@ -73,7 +91,6 @@ function startMeditation() {
   }, 1000);
 }
 
-// ✅ Pause meditation
 function pauseMeditation() {
   isPlaying = false;
   playButton.textContent = "►";
@@ -83,7 +100,6 @@ function pauseMeditation() {
   console.log("Meditation paused ⏸️");
 }
 
-// ✅ Stop and reset
 function stopMeditation() {
   isPlaying = false;
   playButton.textContent = "►";
@@ -95,14 +111,12 @@ function stopMeditation() {
   console.log("Meditation stopped ⏹️");
 }
 
-// ✅ Toggle play/pause
 function togglePlay() {
   console.log("Toggle play clicked. Current state:", isPlaying);
   if (isPlaying) pauseMeditation();
   else startMeditation();
 }
 
-// ✅ Set meditation duration
 function setTime(minutes) {
   if (!isPlaying) {
     selectedTime = minutes * 60;
@@ -112,7 +126,6 @@ function setTime(minutes) {
   }
 }
 
-// ✅ Switch between sounds
 function switchSound(type) {
   if (type === "beach") {
     video.src = "./Sounds/beach.mp4";
@@ -131,7 +144,6 @@ function switchSound(type) {
   }
 }
 
-// ✅ Initialize
 document.addEventListener("DOMContentLoaded", () => {
   updateTimeDisplay();
 
@@ -143,7 +155,7 @@ document.addEventListener("DOMContentLoaded", () => {
   document.querySelector("#beach-sound").addEventListener("click", () => switchSound("beach"));
   document.querySelector("#rain-sound").addEventListener("click", () => switchSound("rain"));
 
-  // ✅ Prevent Cypress media-related rejections
+  // ✅ Prevent Cypress test media errors
   window.addEventListener("unhandledrejection", (event) => {
     if (
       event.reason &&
