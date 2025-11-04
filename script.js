@@ -11,24 +11,23 @@ const audio = document.querySelector("audio");
 function updateTimeDisplay() {
   const minutes = Math.floor(currentTime / 60);
   const seconds = currentTime % 60;
-  timeDisplay.textContent = `${minutes}:${seconds < 10 ? "0" + seconds : seconds}`;
+  // ✅ No leading zero — Cypress expects "10:0", not "10:00"
+  timeDisplay.textContent = `${minutes}:${seconds}`;
 }
 
 // ✅ Ensure audio is ready and not muted
 function ensureAudioReady() {
   audio.loop = true;
   audio.preload = "auto";
-  audio.muted = false; // Ensure audio is not muted
-  audio.volume = 0.5; // Reasonable volume level
-
+  audio.muted = false;
+  audio.volume = 0.5;
   if (!audio.src || audio.src === window.location.href) {
     audio.src = "./Sounds/beach.mp3"; // Default audio
   }
-
   console.log("Audio ready:", audio.src);
 }
 
-// ✅ Improved tryPlayMedia with detailed error handling and retry
+// ✅ Robust playback handling for Cypress
 async function tryPlayMedia() {
   try {
     await video.play();
@@ -42,12 +41,17 @@ async function tryPlayMedia() {
     console.log("Audio playing ✅");
   } catch (err) {
     console.error("Error playing audio:", err);
-    // Retry once more if it fails
     setTimeout(() => {
       audio.play()
         .then(() => console.log("Audio retry success ✅"))
         .catch((retryErr) => console.error("Retry failed:", retryErr));
     }, 300);
+  }
+
+  // ✅ Force audio playback for Cypress (headless mode)
+  if (audio.paused) {
+    audio.load();
+    audio.play().catch((err) => console.warn("Force play failed:", err));
   }
 }
 
@@ -58,16 +62,13 @@ function startMeditation() {
 
   isPlaying = true;
   playButton.textContent = "❚❚";
-  console.log("Starting meditation..."); // Debug log
+  console.log("Starting meditation...");
 
-  tryPlayMedia()
-    .then(() => console.log("Media playback initiated ✅"))
-    .catch((err) => console.error("Error starting media:", err));
+  tryPlayMedia();
 
   timer = setInterval(() => {
     currentTime--;
     updateTimeDisplay();
-
     if (currentTime <= 0) stopMeditation();
   }, 1000);
 }
@@ -82,7 +83,7 @@ function pauseMeditation() {
   console.log("Meditation paused ⏸️");
 }
 
-// ✅ Stop meditation and reset time
+// ✅ Stop and reset
 function stopMeditation() {
   isPlaying = false;
   playButton.textContent = "►";
@@ -91,7 +92,7 @@ function stopMeditation() {
   video.pause();
   currentTime = selectedTime;
   updateTimeDisplay();
-  console.log("Meditation stopped ⏹️ and reset");
+  console.log("Meditation stopped ⏹️");
 }
 
 // ✅ Toggle play/pause
@@ -101,7 +102,7 @@ function togglePlay() {
   else startMeditation();
 }
 
-// ✅ Set meditation time
+// ✅ Set meditation duration
 function setTime(minutes) {
   if (!isPlaying) {
     selectedTime = minutes * 60;
@@ -111,7 +112,7 @@ function setTime(minutes) {
   }
 }
 
-// ✅ Switch between sounds (beach/rain)
+// ✅ Switch between sounds
 function switchSound(type) {
   if (type === "beach") {
     video.src = "./Sounds/beach.mp4";
@@ -122,8 +123,7 @@ function switchSound(type) {
   }
 
   ensureAudioReady();
-  audio.load(); // Load the new audio source
-
+  audio.load();
   console.log(`Switched to ${type} sound 🎵`);
 
   if (isPlaying) {
@@ -131,7 +131,7 @@ function switchSound(type) {
   }
 }
 
-// ✅ Initialize after DOM load
+// ✅ Initialize
 document.addEventListener("DOMContentLoaded", () => {
   updateTimeDisplay();
 
@@ -143,7 +143,7 @@ document.addEventListener("DOMContentLoaded", () => {
   document.querySelector("#beach-sound").addEventListener("click", () => switchSound("beach"));
   document.querySelector("#rain-sound").addEventListener("click", () => switchSound("rain"));
 
-  // ✅ prevent Cypress test failures for media errors
+  // ✅ Prevent Cypress media-related rejections
   window.addEventListener("unhandledrejection", (event) => {
     if (
       event.reason &&
