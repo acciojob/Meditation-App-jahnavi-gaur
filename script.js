@@ -169,31 +169,21 @@ function setTime(minutes) {
 }
 
 
-
 function switchSound(type) {
-
   if (type === "beach") {
-
     video.src = "./Sounds/beach.mp4";
-
     audio.src = "./Sounds/beach.mp3";
-
   } else {
-
     video.src = "./Sounds/rain.mp4";
-
     audio.src = "./Sounds/rain.mp3";
-
   }
 
   ensureAudioReady();
+  audio.load(); // Load the new audio source
 
   if (isPlaying) {
-
     tryPlayMedia();
-
   }
-
 }
 
 
